@@ -1,6 +1,15 @@
 #Bitboard representation
 #name = int(string, base)
 
+#   0,   1,  2,  3,  4,  5,  6,  7         black
+#   8,   9,  10, 11, 12, 13, 14, 15
+#   16, 17,  18, 19, 20, 21, 22, 23
+#   24, 25,  26, 27, 28, 29, 30, 31
+#   32, 33,  34, 35, 36, 37, 38, 39
+#   40, 41,  42, 43, 44, 45, 46, 47
+#   48, 49,  50, 51, 52, 53, 54, 55
+#   56, 57,  58, 59, 60, 61, 62, 63        white
+
 white_pawns = int(
     "0000000011111111000000000000000000000000000000000000000000000000", 2
 )
@@ -66,8 +75,8 @@ def isValidMove(start: int, end: int, turn: chr) -> bool:
         if isOccupied(end) and not isCapturable(end, turn):
             return False
         piece = getPieceAtPosition(start)
-        p_moves = possibleMoves(start, piece)
-        if end in p_moves:
+        p_moves = possibleMoves(start, piece, turn)
+        if not end and end in p_moves:
              print("valid move")
         else:
              print("Invalid move")
@@ -81,31 +90,63 @@ def move(start: int, end: int, turn: chr):
     isValidMove(start, end, turn)
         
 
-def possibleMoves(position: int, piece: str) -> bool:
+def possibleMoves(position: int, piece: str, turn: chr) -> list:
     moves = []
-    if piece == 'p':
+    if piece == 'p':  # White pawn
         if position >= 8 and position <= 15:
-            if not isOccupied(position+8):
+            if not isOccupied(position + 8):
                 moves.append(position + 8)
-            if not isOccupied(position+16):
+            if not isOccupied(position + 16):
                 moves.append(position + 16)
         else:
             if (position + 8) <= 63:
-                if not isOccupied(position+8):
+                if not isOccupied(position + 8):
                     moves.append(position + 8)
+        print(moves)
         return moves
-    elif piece == 'P':
+    elif piece == 'P':  # Black pawn
         if position >= 48 and position <= 55:
-            if not isOccupied(position-8):
+            if not isOccupied(position - 8):
                 moves.append(position - 8)
-            if not isOccupied(position-16):
+            if not isOccupied(position - 16):
                 moves.append(position - 16)
         else:
             if (position - 8) >= 0:
-                if not isOccupied(position-8):
+                if not isOccupied(position - 8):
                     moves.append(position - 8)
-               
-          
+        print(moves)
+        return moves  
+    elif piece == 'r' or piece == 'R':                          # rook
+        for i in range(position + 8, 63, 8):  
+            if isOccupied(i): 
+                if isCapturable(i, turn):  
+                    moves.append(i)
+                break
+            moves.append(i)
+
+        for i in range(position - 8, 0, -8):  
+            if isOccupied(i):  
+                if isCapturable(i, turn): 
+                    moves.append(i)
+                break
+            moves.append(i)
+
+        for i in range(position + 1, (position // 8 + 1) * 8):  # Move right
+            if isOccupied(i):  
+                if isCapturable(i, turn):  
+                    moves.append(i)
+                break
+            moves.append(i)
+
+        for i in range(position - 1, (position // 8) * 8-1, -1):  # Move left 
+            if isOccupied(i):  
+                if isCapturable(i, turn):  
+                    moves.append(i)
+                break
+            moves.append(i)
+        print(moves)
+        return moves
+
 
 
 def getPieceAtPosition(position: int) -> str:
@@ -154,7 +195,7 @@ def isCapturable(position: int, turn: chr) -> bool:    #turn = 0 -> white trun
             whitePieces = (
                         white_pawns | white_rooks | white_knights | white_bishops | white_queen | white_king
             )
-            return (blackPieces & (1<<position)) != 0
+            return (whitePieces & (1<<position)) != 0
 
 def isFriendly(position: int, turn: chr) -> bool:    #turn = 0 -> white trun
     if turn == 'b':
@@ -166,9 +207,21 @@ def isFriendly(position: int, turn: chr) -> bool:    #turn = 0 -> white trun
             whitePieces = (
                         white_pawns | white_rooks | white_knights | white_bishops | white_queen | white_king
             )
-            return (blackPieces & (1<<position)) != 0
+            return (whitePieces & (1<<position)) != 0
 
-# for i in range(64):
-#     print(isCapturable(i, 0))
-move(8, 32, 'w')
+
+def printBoard():
+    # Iterate through 64 squares (8 rows, 8 columns)
+    for row in range(8):
+        for col in range(8):
+            position = row * 8 + col  # Calculate the position in the bitboard
+            piece = getPieceAtPosition(position)  # Get the piece at that position
+            print(piece, end=" ")  # Print the piece at this position
+        print()  # New line at the end of each row
+
+# Call the function to print the board
+printBoard()
+
+
+move(63, 27, 'w')
 print(getPieceAtPosition(8))
