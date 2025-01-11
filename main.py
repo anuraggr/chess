@@ -73,14 +73,22 @@ def move(start: int, end: int, turn: chr):
 
 def isValidMove(start: int, end: int, turn: chr) -> bool:
         if isOccupied(end) and not isCapturable(end, turn):
-            return False
+            print("You cannot capture your own piece!")
+            exit()
         piece = getPieceAtPosition(start)
+        if turn == 'w':
+            if piece.islower():
+                print(f"Square {start} is not occupied by a whites piece. {piece} is there.")
+                exit()
+        if turn == 'b':
+            if piece.isupper():
+                print(f"Square {start} is not occupied by a blacks piece. {piece} is there.")
+                exit()
         p_moves = possibleMoves(start, piece, turn)
-        if not end and end in p_moves:
-             print("valid move")
-        else:
-             print("Invalid move")
-        exit()
+        if end not in p_moves:
+             print(f"Invalid move. Piece {piece} on square {start} cannot go to the square {end}.\nIt can go to the following squares: {p_moves}")
+             exit()
+        return True
 
 def move(start: int, end: int, turn: chr):
     if start < 0 or end >= 64:
@@ -92,7 +100,7 @@ def move(start: int, end: int, turn: chr):
 
 def possibleMoves(position: int, piece: str, turn: chr) -> list:
     moves = []
-    if piece == 'p':  # White pawn
+    if piece == 'p':  # black pawn
         if position >= 8 and position <= 15:
             if not isOccupied(position + 8):
                 moves.append(position + 8)
@@ -104,7 +112,7 @@ def possibleMoves(position: int, piece: str, turn: chr) -> list:
                     moves.append(position + 8)
         print(moves)
         return moves
-    elif piece == 'P':  # Black pawn
+    elif piece == 'P':  # white pawn
         if position >= 48 and position <= 55:
             if not isOccupied(position - 8):
                 moves.append(position - 8)
@@ -116,7 +124,7 @@ def possibleMoves(position: int, piece: str, turn: chr) -> list:
                     moves.append(position - 8)
         print(moves)
         return moves  
-    elif piece == 'r' or piece == 'R':                          # rook
+    elif piece == 'r' or piece == 'R':  # rook
         for i in range(position + 8, 63, 8):  
             if isOccupied(i): 
                 if isCapturable(i, turn):  
@@ -146,6 +154,26 @@ def possibleMoves(position: int, piece: str, turn: chr) -> list:
             moves.append(i)
         print(moves)
         return moves
+    
+    elif piece == 'b' or piece == 'B':  # bishop
+        directions = [9, 7, -7, -9]
+        for direction in directions:
+            for i in range(1, 8):
+                new_position = position + direction * i
+                if new_position < 0 or new_position >= 64:
+                    break
+                if abs((new_position % 8) - (position % 8)) != i:
+                    break
+                if isOccupied(new_position):
+                    if isCapturable(new_position, turn):
+                        moves.append(new_position)
+                    break
+                moves.append(new_position)
+        print(moves)
+        return moves
+    # elif piece == 'k' or piece == 'K':
+
+    return moves
 
 
 
@@ -197,19 +225,6 @@ def isCapturable(position: int, turn: chr) -> bool:    #turn = 0 -> white trun
             )
             return (whitePieces & (1<<position)) != 0
 
-def isFriendly(position: int, turn: chr) -> bool:    #turn = 0 -> white trun
-    if turn == 'b':
-            blackPieces = (
-                        black_pawns | black_rooks | black_knights | black_bishops | black_queen | black_king
-            )
-            return (blackPieces & (1<<position)) != 0
-    elif turn == 'w':
-            whitePieces = (
-                        white_pawns | white_rooks | white_knights | white_bishops | white_queen | white_king
-            )
-            return (whitePieces & (1<<position)) != 0
-
-
 def printBoard():
     # Iterate through 64 squares (8 rows, 8 columns)
     for row in range(8):
@@ -223,5 +238,5 @@ def printBoard():
 printBoard()
 
 
-move(63, 27, 'w')
+move(26, 27, 'w')
 print(getPieceAtPosition(8))
