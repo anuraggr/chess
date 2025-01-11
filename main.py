@@ -80,7 +80,7 @@ def makeMove(start: int, end: int, turn: chr):
     elif piece == 'q': black_queen &= mask
     elif piece == 'k': black_king &= mask
 
-    if isOccupied(end): 
+    if isCapturable(end): 
         capture_mask = ~(1 << end) 
 
         if turn == 'w': 
