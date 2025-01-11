@@ -67,10 +67,6 @@ def move(start: int, end: int, turn: chr):
     isValidMove(start, end, turn)
          
 
-
-
-
-
 def isValidMove(start: int, end: int, turn: chr) -> bool:
         if isOccupied(end) and not isCapturable(end, turn):
             print("You cannot capture your own piece!")
@@ -160,7 +156,7 @@ def possibleMoves(position: int, piece: str, turn: chr) -> list:
         for direction in directions:
             for i in range(1, 8):
                 new_position = position + direction * i
-                if new_position < 0 or new_position >= 64:
+                if new_position < 0 or new_position > 63:
                     break
                 if abs((new_position % 8) - (position % 8)) != i:
                     break
@@ -171,8 +167,67 @@ def possibleMoves(position: int, piece: str, turn: chr) -> list:
                 moves.append(new_position)
         print(moves)
         return moves
-    # elif piece == 'k' or piece == 'K':
+    elif piece == 'n' or piece == 'N':
+        directions = [17, 15, -15, -17, 6, -6, 10, -10]
+        for direction in directions:
+            new_position = position + direction
+            if 0 <= new_position < 64 and abs((new_position % 8) - (position % 8)) <= 2:
+                if not isOccupied(new_position) or isCapturable(new_position, turn):
+                    moves.append(new_position)
+        print(moves)
+        return moves
+    elif piece == 'q' or piece == 'Q':  # queen
+        for i in range(position + 8, 63, 8):  
+            if isOccupied(i): 
+                if isCapturable(i, turn):  
+                    moves.append(i)
+                break
+            moves.append(i)
 
+        for i in range(position - 8, 0, -8):  
+            if isOccupied(i):  
+                if isCapturable(i, turn): 
+                    moves.append(i)
+                break
+            moves.append(i)
+
+        for i in range(position + 1, (position // 8 + 1) * 8):  # Move right
+            if isOccupied(i):  
+                if isCapturable(i, turn):  
+                    moves.append(i)
+                break
+            moves.append(i)
+
+        for i in range(position - 1, (position // 8) * 8-1, -1):  # Move left 
+            if isOccupied(i):  
+                if isCapturable(i, turn):  
+                    moves.append(i)
+                break
+            moves.append(i)
+        directions = [9, 7, -7, -9]
+        for direction in directions:
+            for i in range(1, 8):
+                new_position = position + direction * i
+                if new_position < 0 or new_position > 63:
+                    break
+                if abs((new_position % 8) - (position % 8)) != i:
+                    break
+                if isOccupied(new_position):
+                    if isCapturable(new_position, turn):
+                        moves.append(new_position)
+                    break
+                moves.append(new_position)
+        print(moves)
+        return moves
+    elif piece == 'k' or piece == 'K':  # king
+        directions = [8, -8, 1, -1, 9, 7, -7, -9]
+        for direction in directions:
+            new_position = position + direction
+            if 0 <= new_position < 64 and abs((new_position % 8) - (position % 8)) <= 1:
+                if not isOccupied(new_position) or isCapturable(new_position, turn):
+                    moves.append(new_position)
+        print(moves)
+        return moves
     return moves
 
 
@@ -238,5 +293,5 @@ def printBoard():
 printBoard()
 
 
-move(26, 27, 'w')
+move(18, 19, 'b')
 print(getPieceAtPosition(8))
