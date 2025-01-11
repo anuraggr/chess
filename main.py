@@ -59,13 +59,62 @@ black_king = int(
 )
 
 
-def move(start: int, end: int, turn: chr):
-    if start < 0 or end >= 64:
-        print("Invalid Move. The given squares are outside the bounds of the board")
-        exit()
-   
-    isValidMove(start, end, turn)
-         
+def makeMove(start: int, end: int, turn: chr):
+    global white_pawns, white_rooks, white_knights, white_bishops, white_queen, white_king
+    global black_pawns, black_rooks, black_knights, black_bishops, black_queen, black_king
+
+    piece = getPieceAtPosition(start)
+
+    mask = ~(1 << start)  # Mask to clear the bit at the `start` position
+
+    if piece == 'P': white_pawns &= mask
+    elif piece == 'R': white_rooks &= mask
+    elif piece == 'N': white_knights &= mask
+    elif piece == 'B': white_bishops &= mask
+    elif piece == 'Q': white_queen &= mask
+    elif piece == 'K': white_king &= mask
+    elif piece == 'p': black_pawns &= mask
+    elif piece == 'r': black_rooks &= mask
+    elif piece == 'n': black_knights &= mask
+    elif piece == 'b': black_bishops &= mask
+    elif piece == 'q': black_queen &= mask
+    elif piece == 'k': black_king &= mask
+
+    if isOccupied(end): 
+        capture_mask = ~(1 << end) 
+
+        if turn == 'w': 
+            if black_pawns & (1 << end): black_pawns &= capture_mask
+            elif black_rooks & (1 << end): black_rooks &= capture_mask
+            elif black_knights & (1 << end): black_knights &= capture_mask
+            elif black_bishops & (1 << end): black_bishops &= capture_mask
+            elif black_queen & (1 << end): black_queen &= capture_mask
+            elif black_king & (1 << end): black_king &= capture_mask
+        elif turn == 'b': 
+            if white_pawns & (1 << end): white_pawns &= capture_mask
+            elif white_rooks & (1 << end): white_rooks &= capture_mask
+            elif white_knights & (1 << end): white_knights &= capture_mask
+            elif white_bishops & (1 << end): white_bishops &= capture_mask
+            elif white_queen & (1 << end): white_queen &= capture_mask
+            elif white_king & (1 << end): white_king &= capture_mask
+
+    move_mask = (1 << end)  # Mask to set the bit at the `end` position
+
+    if piece == 'P': white_pawns |= move_mask
+    elif piece == 'R': white_rooks |= move_mask
+    elif piece == 'N': white_knights |= move_mask
+    elif piece == 'B': white_bishops |= move_mask
+    elif piece == 'Q': white_queen |= move_mask
+    elif piece == 'K': white_king |= move_mask
+    elif piece == 'p': black_pawns |= move_mask
+    elif piece == 'r': black_rooks |= move_mask
+    elif piece == 'n': black_knights |= move_mask
+    elif piece == 'b': black_bishops |= move_mask
+    elif piece == 'q': black_queen |= move_mask
+    elif piece == 'k': black_king |= move_mask
+
+    
+    
 
 def isValidMove(start: int, end: int, turn: chr) -> bool:
         if isOccupied(end) and not isCapturable(end, turn):
@@ -92,34 +141,51 @@ def move(start: int, end: int, turn: chr):
         exit()
    
     isValidMove(start, end, turn)
+    makeMove(start, end, turn)
+    
         
 
 def possibleMoves(position: int, piece: str, turn: chr) -> list:
     moves = []
     if piece == 'p':  # black pawn
-        if position >= 8 and position <= 15:
+        if position >= 8 and position <= 15:  # Starting position
             if not isOccupied(position + 8):
                 moves.append(position + 8)
-            if not isOccupied(position + 16):
-                moves.append(position + 16)
+                if not isOccupied(position + 16):
+                    moves.append(position + 16)
         else:
-            if (position + 8) <= 63:
-                if not isOccupied(position + 8):
-                    moves.append(position + 8)
+            if (position + 8) <= 63 and not isOccupied(position + 8):
+                moves.append(position + 8)
+        
+        # Add diagonal captures
+        if position % 8 != 0 and (position + 7) <= 63:  # Left capture
+            if isOccupied(position + 7) and isCapturable(position + 7, turn):
+                moves.append(position + 7)
+        if position % 8 != 7 and (position + 9) <= 63:  # Right capture
+            if isOccupied(position + 9) and isCapturable(position + 9, turn):
+                moves.append(position + 9)
         print(moves)
         return moves
+                
     elif piece == 'P':  # white pawn
-        if position >= 48 and position <= 55:
+        if position >= 48 and position <= 55:  # Starting position
             if not isOccupied(position - 8):
                 moves.append(position - 8)
-            if not isOccupied(position - 16):
-                moves.append(position - 16)
+                if not isOccupied(position - 16):
+                    moves.append(position - 16)
         else:
-            if (position - 8) >= 0:
-                if not isOccupied(position - 8):
-                    moves.append(position - 8)
+            if (position - 8) >= 0 and not isOccupied(position - 8):
+                moves.append(position - 8)
+                
+        # Add diagonal captures
+        if position % 8 != 0 and (position - 9) >= 0:  # Left capture
+            if isOccupied(position - 9) and isCapturable(position - 9, turn):
+                moves.append(position - 9)
+        if position % 8 != 7 and (position - 7) >= 0:  # Right capture
+            if isOccupied(position - 7) and isCapturable(position - 7, turn):
+                moves.append(position - 7)
         print(moves)
-        return moves  
+        return moves
     elif piece == 'r' or piece == 'R':  # rook
         for i in range(position + 8, 63, 8):  
             if isOccupied(i): 
@@ -291,7 +357,19 @@ def printBoard():
 
 # Call the function to print the board
 printBoard()
+turn = 'w'
+while(True):
+    if turn == 'w':
+        start = int(input("White to move. Enter Piece to move: "))
+        end = int(input("Move to: "))
+        move(start, end, turn)
+        printBoard()
+        turn = 'b'
+    else:
+        start = int(input("Black to move. Enter Piece to move: "))
+        end = int(input("Move to: "))
+        move(start, end, turn)
+        printBoard()
+        turn = 'w'
+    
 
-
-move(18, 19, 'b')
-print(getPieceAtPosition(8))
