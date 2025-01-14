@@ -62,10 +62,18 @@ black_king = int(
 def makeMove(start: int, end: int, turn: chr):
     global white_pawns, white_rooks, white_knights, white_bishops, white_queen, white_king
     global black_pawns, black_rooks, black_knights, black_bishops, black_queen, black_king
+    
+    # # "Global" to modify the variables outside the func and not just make a copy of variable inside.
 
     piece = getPieceAtPosition(start)
 
-    mask = ~(1 << start)  # Mask to clear the bit at the `start` position
+    mask = ~(1 << start)  # 'Mask' is used to remove the bit at the startig position.
+
+    # # How mask works:
+    # # Creates a binary number '1'. "(1 << start)" Sifts the '1' to the left 'start' times.
+    # # Inverses all bits. 
+    # # final result is something like ...1111111011111111111111111111111111111... where 0 is at start pos.
+    # # now we can use & to remove that piece from the board.
 
     if piece == 'P': white_pawns &= mask
     elif piece == 'R': white_rooks &= mask
@@ -80,6 +88,10 @@ def makeMove(start: int, end: int, turn: chr):
     elif piece == 'q': black_queen &= mask
     elif piece == 'k': black_king &= mask
 
+    # # Now the piece at the start position is removed.
+
+
+    # # same as above to remove the captured piece from the board.
     if isCapturable(end): 
         capture_mask = ~(1 << end) 
 
@@ -98,6 +110,8 @@ def makeMove(start: int, end: int, turn: chr):
             elif white_queen & (1 << end): white_queen &= capture_mask
             elif white_king & (1 << end): white_king &= capture_mask
 
+
+    # # Essentially the same as above we just use OR obitwise operation to set the piece at end pos.
     move_mask = (1 << end)  # Mask to set the bit at the `end` position
 
     if piece == 'P': white_pawns |= move_mask
@@ -129,10 +143,10 @@ def isValidMove(start: int, end: int, turn: chr) -> bool:
             if piece.isupper():
                 print(f"Square {start} is not occupied by a blacks piece. {piece} is there.")
                 exit()
-        p_moves = possibleMoves(start, piece, turn)
-        if end not in p_moves:
-             print(f"Invalid move. Piece {piece} on square {start} cannot go to the square {end}.\nIt can go to the following squares: {p_moves}")
-             exit()
+        p_moves = possibleMoveDictionary(turn)
+        if end not in p_moves[start]:
+                print("Not a possible move!")
+                exit()
         return True
 
 def move(start: int, end: int, turn: chr):
@@ -145,7 +159,7 @@ def move(start: int, end: int, turn: chr):
     
         
 
-def possibleMoves(position: int, piece: str, turn: chr) -> list:
+def possibleMoves(position: int, piece: str, turn: chr=None) -> list:
     moves = []
     if piece == 'p':  # black pawn
         if position >= 8 and position <= 15:  # Starting position
@@ -324,8 +338,19 @@ def getPieceAtPosition(position: int) -> str:
         elif (black_king & (1 << position)) != 0:
             return 'k'
         else:
-            return '.'
+            return None
 
+
+def possibleMoveDictionary(turn: chr) -> dict:
+    all_moves = {}
+    for position in range(0,63):
+        piece = getPieceAtPosition(position)
+        if piece != None:
+            if (turn == 'w' and piece.isupper()) or (turn == 'b' and piece.islower()):
+                moves = possibleMoves(position, piece, turn)
+                if moves:
+                    all_moves[position] = all_moves.get(position, []) + moves
+    return all_moves
 
 def isOccupied(position: int) -> bool: 
     occupied = (
@@ -358,6 +383,7 @@ def printBoard():
 # Call the function to print the board
 printBoard()
 turn = 'w'
+print(possibleMoveDictionary('w'))
 while(True):
     if turn == 'w':
         start = int(input("White to move. Enter Piece to move: "))
