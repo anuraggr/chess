@@ -1,1 +1,1 @@
-A CLI Chess game
+# A command line chess game built from scratch.

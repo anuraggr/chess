@@ -27,11 +27,11 @@ white_bishops = int(
 )
 
 white_queen = int(
-    "0001000000000000000000000000000000000000000000000000000000000000", 2
+    "0000100000000000000000000000000000000000000000000000000000000000", 2
 )
 
 white_king = int(
-    "0000100000000000000000000000000000000000000000000000000000000000", 2
+    "0001000000000000000000000000000000000000000000000000000000000000", 2
 )
 
 black_pawns = int(
@@ -51,11 +51,11 @@ black_bishops = int(
 )
 
 black_queen = int(
-    "0000000000000000000000000000000000000000000000000000000000010000", 2
+    "0000000000000000000000000000000000000000000000000000000000001000", 2
 )
 
 black_king = int(
-    "0000000000000000000000000000000000000000000000000000000000001000", 2
+    "0000000000000000000000000000000000000000000000000000000000010000", 2
 )
 
 
@@ -92,7 +92,7 @@ def makeMove(start: int, end: int, turn: chr):
 
 
     # # same as above to remove the captured piece from the board.
-    if isCapturable(end): 
+    if isCapturable(end, turn): 
         capture_mask = ~(1 << end) 
 
         if turn == 'w': 
@@ -143,8 +143,20 @@ def isValidMove(start: int, end: int, turn: chr) -> bool:
             if piece.isupper():
                 print(f"Square {start} is not occupied by a blacks piece. {piece} is there.")
                 exit()
+
         p_moves = possibleMoveDictionary(turn)
+        if start not in p_moves:
+            print("Not a possible move!")
+            exit()
         if end not in p_moves[start]:
+            print("Not a possible move!")
+            exit()
+        if isCheck:
+            p_moves = possibleMoveDictionary(turn, check=True)
+            if start not in p_moves:
+                print("Not a possible move!")
+                exit()
+            if end not in p_moves[start]:
                 print("Not a possible move!")
                 exit()
         return True
@@ -155,9 +167,20 @@ def move(start: int, end: int, turn: chr):
         exit()
    
     isValidMove(start, end, turn)
-    makeMove(start, end, turn)
-    
+    makeMove(start, end, turn)    
         
+
+def isCheck(turn: chr) -> bool:
+    moves = possibleMoveDictionary(turn)  # dict
+    if turn == 'w':
+        for move_list in moves.values():
+            if any(getPieceAtPosition(pos) == 'k' for pos in move_list):
+                return True
+    elif turn == 'b':
+        for move_list in moves.values():
+            if any(getPieceAtPosition(pos) == 'K' for pos in move_list):
+                return True
+    return False
 
 def possibleMoves(position: int, piece: str, turn: chr=None) -> list:
     moves = []
@@ -178,7 +201,6 @@ def possibleMoves(position: int, piece: str, turn: chr=None) -> list:
         if position % 8 != 7 and (position + 9) <= 63:  # Right capture
             if isOccupied(position + 9) and isCapturable(position + 9, turn):
                 moves.append(position + 9)
-        print(moves)
         return moves
                 
     elif piece == 'P':  # white pawn
@@ -198,7 +220,6 @@ def possibleMoves(position: int, piece: str, turn: chr=None) -> list:
         if position % 8 != 7 and (position - 7) >= 0:  # Right capture
             if isOccupied(position - 7) and isCapturable(position - 7, turn):
                 moves.append(position - 7)
-        print(moves)
         return moves
     elif piece == 'r' or piece == 'R':  # rook
         for i in range(position + 8, 63, 8):  
@@ -228,7 +249,6 @@ def possibleMoves(position: int, piece: str, turn: chr=None) -> list:
                     moves.append(i)
                 break
             moves.append(i)
-        print(moves)
         return moves
     
     elif piece == 'b' or piece == 'B':  # bishop
@@ -245,7 +265,6 @@ def possibleMoves(position: int, piece: str, turn: chr=None) -> list:
                         moves.append(new_position)
                     break
                 moves.append(new_position)
-        print(moves)
         return moves
     elif piece == 'n' or piece == 'N':
         directions = [17, 15, -15, -17, 6, -6, 10, -10]
@@ -254,7 +273,6 @@ def possibleMoves(position: int, piece: str, turn: chr=None) -> list:
             if 0 <= new_position < 64 and abs((new_position % 8) - (position % 8)) <= 2:
                 if not isOccupied(new_position) or isCapturable(new_position, turn):
                     moves.append(new_position)
-        print(moves)
         return moves
     elif piece == 'q' or piece == 'Q':  # queen
         for i in range(position + 8, 63, 8):  
@@ -297,7 +315,6 @@ def possibleMoves(position: int, piece: str, turn: chr=None) -> list:
                         moves.append(new_position)
                     break
                 moves.append(new_position)
-        print(moves)
         return moves
     elif piece == 'k' or piece == 'K':  # king
         directions = [8, -8, 1, -1, 9, 7, -7, -9]
@@ -306,7 +323,6 @@ def possibleMoves(position: int, piece: str, turn: chr=None) -> list:
             if 0 <= new_position < 64 and abs((new_position % 8) - (position % 8)) <= 1:
                 if not isOccupied(new_position) or isCapturable(new_position, turn):
                     moves.append(new_position)
-        print(moves)
         return moves
     return moves
 
@@ -338,19 +354,50 @@ def getPieceAtPosition(position: int) -> str:
         elif (black_king & (1 << position)) != 0:
             return 'k'
         else:
-            return None
+            return '.'
 
 
-def possibleMoveDictionary(turn: chr) -> dict:
-    all_moves = {}
-    for position in range(0,63):
-        piece = getPieceAtPosition(position)
-        if piece != None:
-            if (turn == 'w' and piece.isupper()) or (turn == 'b' and piece.islower()):
-                moves = possibleMoves(position, piece, turn)
-                if moves:
-                    all_moves[position] = all_moves.get(position, []) + moves
-    return all_moves
+def possibleMoveDictionary(turn: chr, check: bool = False) -> dict:
+    global white_pawns, white_rooks, white_knights, white_bishops, white_queen, white_king
+    global black_pawns, black_rooks, black_knights, black_bishops, black_queen, black_king
+    
+    if check == False:
+        all_moves = {}
+        for position in range(0,63):
+            piece = getPieceAtPosition(position)
+            if piece != '.':
+                if (turn == 'w' and piece.isupper()) or (turn == 'b' and piece.islower()):
+                    moves = possibleMoves(position, piece, turn)
+                    if moves:
+                        all_moves[position] = all_moves.get(position, []) + moves
+        return all_moves
+    else:
+        all_moves = {}
+        for position in range(0, 63):
+            piece = getPieceAtPosition(position)
+            if piece != '.':
+                if (turn == 'w' and piece.isupper()) or (turn == 'b' and piece.islower()):
+                    moves = possibleMoves(position, piece, turn)
+                    if moves:
+                        valid_moves = []
+                        for move in moves:
+                            # Try the move
+                            original_state = (white_pawns, white_rooks, white_knights, white_bishops, white_queen, white_king,
+                                           black_pawns, black_rooks, black_knights, black_bishops, black_queen, black_king)
+                            makeMove(position, move, turn)
+                            # Check if still in check
+                            if not isCheck(turn):
+                                valid_moves.append(move)
+                            # Restore board state
+                            (white_pawns, white_rooks, white_knights, white_bishops, white_queen, white_king,
+                             black_pawns, black_rooks, black_knights, black_bishops, black_queen, black_king) = original_state
+                        if valid_moves:
+                            all_moves[position] = valid_moves
+        return all_moves
+
+
+
+
 
 def isOccupied(position: int) -> bool: 
     occupied = (
