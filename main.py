@@ -102,7 +102,7 @@ def makeMove(start: int, end: int, turn: chr):
             elif black_bishops & (1 << end): black_bishops &= capture_mask
             elif black_queen & (1 << end): black_queen &= capture_mask
             elif black_king & (1 << end): black_king &= capture_mask
-        elif turn == 'b': 
+        else: 
             if white_pawns & (1 << end): white_pawns &= capture_mask
             elif white_rooks & (1 << end): white_rooks &= capture_mask
             elif white_knights & (1 << end): white_knights &= capture_mask
@@ -437,24 +437,21 @@ check = False
 
 def move():
     global turn, check
-    print(possibleMoveDictionary(turn))
     while(True):
         if turn == 'w':
             current_check = isCheck(turn)
-            if current_check == True and  not possibleMoveDictionary(turn, current_check).empty():
+            if current_check == True and not possibleMoveDictionary(turn, current_check):
                 print("Checkmate! Black is Victorious")
                 exit()
             start = int(input("White to move. Enter Piece to move: "))
             end = int(input("Move to: "))
             if not isValidMove(start, end, turn, current_check):
                 print("Invalid Move")
-                move()
+                continue
                 
             makeMove(start, end, turn)
-
-            check = isCheck('b' if turn == 'w' else 'w')
+            check = isCheck('b')
             printBoard()
-
             turn = 'b'
         else:
             current_check = isCheck(turn)
@@ -465,9 +462,9 @@ def move():
             end = int(input("Move to: "))
             if not isValidMove(start, end, turn, current_check):
                 print("Invalid Move")
-                move()
+                continue
             makeMove(start, end, turn)
-            check = isCheck('b' if turn == 'w' else 'w')
+            check = isCheck('w')
             printBoard()
             turn = 'w'
 
@@ -485,3 +482,4 @@ def printBoard():
 
 move()
 
+#TODO: En passant, castling
