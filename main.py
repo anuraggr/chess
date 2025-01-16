@@ -6,9 +6,9 @@
 #   16, 17,  18, 19, 20, 21, 22, 23
 #   24, 25,  26, 27, 28, 29, 30, 31
 #   32, 33,  34, 35, 36, 37, 38, 39
-#   40, 41,  42, 43, 44, 45, 46, 47
-#   48, 49,  50, 51, 52, 53, 54, 55
-#   56, 57,  58, 59, 60, 61, 62, 63        white
+#   40, 41,  42, 43, 44, 45, 46, 47              
+#   48, 49,  50, 51, 52, 53, 54, 55              
+#   56, 57,  58, 59, 60, 61, 62, 63        white 
 
 white_pawns = int(
     "0000000011111111000000000000000000000000000000000000000000000000", 2
@@ -130,57 +130,83 @@ def makeMove(start: int, end: int, turn: chr):
     
     
 
-def isValidMove(start: int, end: int, turn: chr) -> bool:
-        if isOccupied(end) and not isCapturable(end, turn):
-            print("You cannot capture your own piece!")
-            exit()
-        piece = getPieceAtPosition(start)
-        if turn == 'w':
-            if piece.islower():
-                print(f"Square {start} is not occupied by a whites piece. {piece} is there.")
-                exit()
-        if turn == 'b':
-            if piece.isupper():
-                print(f"Square {start} is not occupied by a blacks piece. {piece} is there.")
-                exit()
+def isValidMove(start: int, end: int, turn: chr, check: bool) -> bool:
 
-        p_moves = possibleMoveDictionary(turn)
-        if start not in p_moves:
-            print("Not a possible move!")
-            exit()
-        if end not in p_moves[start]:
-            print("Not a possible move!")
-            exit()
-        if isCheck:
-            p_moves = possibleMoveDictionary(turn, check=True)
-            if start not in p_moves:
-                print("Not a possible move!")
-                exit()
-            if end not in p_moves[start]:
-                print("Not a possible move!")
-                exit()
-        return True
-
-def move(start: int, end: int, turn: chr):
     if start < 0 or end >= 64:
         print("Invalid Move. The given squares are outside the bounds of the board")
-        exit()
-   
-    isValidMove(start, end, turn)
-    makeMove(start, end, turn)    
+        return
+
+    if isOccupied(end) and not isCapturable(end, turn):
+        print("You cannot capture your own piece!")
+        return False
         
+    piece = getPieceAtPosition(start)
+    if turn == 'w' and piece.islower():
+        print(f"Square {start} is not occupied by a whites piece.")
+        return False
+    if turn == 'b' and piece.isupper():
+        print(f"Square {start} is not occupied by a blacks piece.")
+        return False
+
+   
+    if check:
+        if not simulateMove(start, end, turn):
+            print("Must move out of check!")
+            return False
+    
+  
+    p_moves = possibleMoveDictionary(turn, check)
+    if not p_moves:
+        print("No valid moves available!")
+        return False
+    if start not in p_moves:
+        print("Not a possible move!")
+        return False
+    if end not in p_moves[start]:
+        print("Not a possible move!")
+        return False
+
+    return True
+
+
+
+
 
 def isCheck(turn: chr) -> bool:
-    moves = possibleMoveDictionary(turn)  # dict
+    opponent_turn = 'b' if turn == 'w' else 'w'
+    moves = possibleMoveDictionary(opponent_turn)  # Get opponent's possible moves
     if turn == 'w':
-        for move_list in moves.values():
-            if any(getPieceAtPosition(pos) == 'k' for pos in move_list):
-                return True
-    elif turn == 'b':
         for move_list in moves.values():
             if any(getPieceAtPosition(pos) == 'K' for pos in move_list):
                 return True
+    elif turn == 'b':
+        for move_list in moves.values():
+            if any(getPieceAtPosition(pos) == 'k' for pos in move_list):
+                return True
     return False
+
+
+def simulateMove(start: int, end: int, turn: chr) -> bool:
+    """Simulate a move and check if it resolves check."""
+    global white_pawns, white_rooks, white_knights, white_bishops, white_queen, white_king
+    global black_pawns, black_rooks, black_knights, black_bishops, black_queen, black_king
+
+    state = (
+        white_pawns, white_rooks, white_knights, white_bishops, white_queen, white_king,
+        black_pawns, black_rooks, black_knights, black_bishops, black_queen, black_king
+    )
+
+    makeMove(start, end, turn)
+ 
+    king_safe = not isCheck(turn)
+    
+    (
+        white_pawns, white_rooks, white_knights, white_bishops, white_queen, white_king,
+        black_pawns, black_rooks, black_knights, black_bishops, black_queen, black_king
+    ) = state
+    
+    return king_safe
+
 
 def possibleMoves(position: int, piece: str, turn: chr=None) -> list:
     moves = []
@@ -194,7 +220,7 @@ def possibleMoves(position: int, piece: str, turn: chr=None) -> list:
             if (position + 8) <= 63 and not isOccupied(position + 8):
                 moves.append(position + 8)
         
-        # Add diagonal captures
+        # pawn captures
         if position % 8 != 0 and (position + 7) <= 63:  # Left capture
             if isOccupied(position + 7) and isCapturable(position + 7, turn):
                 moves.append(position + 7)
@@ -213,7 +239,7 @@ def possibleMoves(position: int, piece: str, turn: chr=None) -> list:
             if (position - 8) >= 0 and not isOccupied(position - 8):
                 moves.append(position - 8)
                 
-        # Add diagonal captures
+        # captures
         if position % 8 != 0 and (position - 9) >= 0:  # Left capture
             if isOccupied(position - 9) and isCapturable(position - 9, turn):
                 moves.append(position - 9)
@@ -375,28 +401,15 @@ def possibleMoveDictionary(turn: chr, check: bool = False) -> dict:
         all_moves = {}
         for position in range(0, 63):
             piece = getPieceAtPosition(position)
-            if piece != '.':
-                if (turn == 'w' and piece.isupper()) or (turn == 'b' and piece.islower()):
-                    moves = possibleMoves(position, piece, turn)
-                    if moves:
-                        valid_moves = []
-                        for move in moves:
-                            # Try the move
-                            original_state = (white_pawns, white_rooks, white_knights, white_bishops, white_queen, white_king,
-                                           black_pawns, black_rooks, black_knights, black_bishops, black_queen, black_king)
-                            makeMove(position, move, turn)
-                            # Check if still in check
-                            if not isCheck(turn):
-                                valid_moves.append(move)
-                            # Restore board state
-                            (white_pawns, white_rooks, white_knights, white_bishops, white_queen, white_king,
-                             black_pawns, black_rooks, black_knights, black_bishops, black_queen, black_king) = original_state
-                        if valid_moves:
-                            all_moves[position] = valid_moves
+            if piece != '.' and ((turn == 'w' and piece.isupper()) or (turn == 'b' and piece.islower())):
+                moves = possibleMoves(position, piece, turn)
+                valid_moves = []
+                for move in moves:
+                    if simulateMove(position, move, turn):
+                        valid_moves.append(move)
+                if valid_moves:
+                    all_moves[position] = valid_moves
         return all_moves
-
-
-
 
 
 def isOccupied(position: int) -> bool: 
@@ -406,7 +419,7 @@ def isOccupied(position: int) -> bool:
         )
     return (occupied & (1 << position)) != 0
 
-def isCapturable(position: int, turn: chr) -> bool:    #turn = 0 -> white trun
+def isCapturable(position: int, turn: chr) -> bool:   
     if turn == 'w':
             blackPieces = (
                         black_pawns | black_rooks | black_knights | black_bishops | black_queen | black_king
@@ -418,6 +431,47 @@ def isCapturable(position: int, turn: chr) -> bool:    #turn = 0 -> white trun
             )
             return (whitePieces & (1<<position)) != 0
 
+print(possibleMoveDictionary('w'))
+turn = 'w'
+check = False
+
+def move():
+    global turn, check
+    print(possibleMoveDictionary(turn))
+    while(True):
+        if turn == 'w':
+            current_check = isCheck(turn)
+            if current_check == True and  not possibleMoveDictionary(turn, current_check).empty():
+                print("Checkmate! Black is Victorious")
+                exit()
+            start = int(input("White to move. Enter Piece to move: "))
+            end = int(input("Move to: "))
+            if not isValidMove(start, end, turn, current_check):
+                print("Invalid Move")
+                move()
+                
+            makeMove(start, end, turn)
+
+            check = isCheck('b' if turn == 'w' else 'w')
+            printBoard()
+
+            turn = 'b'
+        else:
+            current_check = isCheck(turn)
+            if current_check == True and not possibleMoveDictionary(turn, current_check):
+                print("Checkmate! White is Victorious")
+                exit()
+            start = int(input("Black to move. Enter Piece to move: "))
+            end = int(input("Move to: "))
+            if not isValidMove(start, end, turn, current_check):
+                print("Invalid Move")
+                move()
+            makeMove(start, end, turn)
+            check = isCheck('b' if turn == 'w' else 'w')
+            printBoard()
+            turn = 'w'
+
+
 def printBoard():
     # Iterate through 64 squares (8 rows, 8 columns)
     for row in range(8):
@@ -427,22 +481,7 @@ def printBoard():
             print(piece, end=" ")  # Print the piece at this position
         print()  # New line at the end of each row
 
-# Call the function to print the board
-printBoard()
-turn = 'w'
-print(possibleMoveDictionary('w'))
-while(True):
-    if turn == 'w':
-        start = int(input("White to move. Enter Piece to move: "))
-        end = int(input("Move to: "))
-        move(start, end, turn)
-        printBoard()
-        turn = 'b'
-    else:
-        start = int(input("Black to move. Enter Piece to move: "))
-        end = int(input("Move to: "))
-        move(start, end, turn)
-        printBoard()
-        turn = 'w'
-    
+
+
+move()
 
