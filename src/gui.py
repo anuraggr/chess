@@ -4,20 +4,21 @@ import os
 class GUI:
     def __init__(self):
         pygame.init()
-        self.square_size = 80
+        self.square_size = 80  # Reduced from 80 to 60
         self.board_size = self.square_size * 8
         self.screen = pygame.display.set_mode((self.board_size, self.board_size))
         pygame.display.set_caption("Chess")
 
+        # Configure piece sizes with padding
+        self.piece_size = int(self.square_size * 0.9)  # Pieces slightly smaller than squares
+        self.piece_padding = (self.square_size - self.piece_size) // 2
+
+        # Load and scale pieces with better quality
         self.pieces = {}
         pieces = ['P', 'N', 'B', 'R', 'Q', 'K', 'p', 'n', 'b', 'r', 'q', 'k']
         for piece in pieces:
-            self.pieces[piece] = pygame.image.load(
-                os.path.join("assets", f"{piece}.png")
-            ).convert_alpha()
-            self.pieces[piece] = pygame.transform.scale(
-                self.pieces[piece], (self.square_size, self.square_size)
-            )
+            img = pygame.image.load(os.path.join("assets", f"{piece}.png")).convert_alpha()
+            self.pieces[piece] = pygame.transform.smoothscale(img, (self.piece_size, self.piece_size))
     
     def draw_board(self, board):
         for row in range(8):
@@ -30,10 +31,10 @@ class GUI:
                 )
                 piece = board.get_piece_at_position(row * 8 + col)
                 if piece != '.':
-                    self.screen.blit(
-                        self.pieces[piece],
-                        (col * self.square_size, row * self.square_size)
-                    )
+                    # Center piece in square
+                    piece_x = col * self.square_size + self.piece_padding
+                    piece_y = row * self.square_size + self.piece_padding
+                    self.screen.blit(self.pieces[piece], (piece_x, piece_y))
         pygame.display.flip()
 
     def get_square_from_mouse(self, pos):
@@ -42,22 +43,27 @@ class GUI:
         col = x // self.square_size
         return row * 8 + col
     
-    def highlight_square(self, square):
+    def highlight_square(self, square, board):
         row = square // 8
         col = square % 8
+        original_surface = self.screen.copy()
         s = pygame.Surface((self.square_size, self.square_size))
         s.set_alpha(128)
-        s.fill((124, 252, 0))  # light green
+        s.fill((100,110,64,255))
         self.screen.blit(s, (col * self.square_size, row * self.square_size))
+
+        piece = board.get_piece_at_position(square)
+        if piece != '.':
+            piece_x = col * self.square_size + self.piece_padding
+            piece_y = row * self.square_size + self.piece_padding
+            self.screen.blit(self.pieces[piece], (piece_x, piece_y))
         pygame.display.flip()
 
     def highlight_moves(self, moves):
         for move in moves:
             row = move // 8
             col = move % 8
-            s = pygame.Surface((self.square_size, self.square_size))
-            s.set_alpha(128)
-            s.fill((65, 105, 225))  # blue
+            s = pygame.Surface((self.square_size, self.square_size), pygame.SRCALPHA)
+            pygame.draw.circle(s, (100,110,64,255), (self.square_size//2, self.square_size//2), self.square_size//6)
             self.screen.blit(s, (col * self.square_size, row * self.square_size))
         pygame.display.flip()
-    

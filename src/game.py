@@ -33,7 +33,7 @@ class Game:
                         if (self.turn == 'w' and piece.isupper()) or (self.turn == 'b' and piece.islower()):
                             self.selected_square = square
                             self.gui.draw_board(self.board)
-                            self.gui.highlight_square(square)
+                            self.gui.highlight_square(square, self.board)
                             moves = self.board.possible_move_dictionary(self.turn, current_check).get(square, [])
                             self.gui.highlight_moves(moves)
                     else:
