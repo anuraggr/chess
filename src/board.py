@@ -19,10 +19,10 @@ class Board:
         piece = self.get_piece_at_position(start)
         mask = ~(1 << start)
 
-        # Remove piece from start position
+        # Remove the piece that is moving from its pos
         self._remove_piece(piece, mask)
 
-        # Handle capture if necessary
+        # Handle captures if any
         if self.is_capturable(end, turn):
             self._handle_capture(end, turn)
 
@@ -120,7 +120,7 @@ class Board:
         return False
 
     def simulate_move(self, start: int, end: int, turn: chr) -> bool:
-        """Simulate a move and check if it resolves check."""
+        # # move simulation to handle checks
         state = (
             self.white_pawns, self.white_rooks, self.white_knights, self.white_bishops, self.white_queen, self.white_king,
             self.black_pawns, self.black_rooks, self.black_knights, self.black_bishops, self.black_queen, self.black_king
@@ -229,6 +229,8 @@ class Board:
                     if not self.is_occupied(new_position) or self.is_capturable(new_position, turn):
                         moves.append(new_position)
             return moves
+        
+        # # TODO: combine rook and bishop to get queen moves
         elif piece == 'q' or piece == 'Q':  # queen
             for i in range(position + 8, 63, 8):  
                 if self.is_occupied(i): 
