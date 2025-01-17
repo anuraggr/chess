@@ -38,12 +38,12 @@ class Board:
                 elif end == 2:
                     self._move_piece(0, 3, 'r')
 
-        elif piece == 'R' and self.white_rooks_moved[start] == False:
-            if start == 63: self.white_rooks_moved[63] = True
-            elif start == 56: self.white_rooks_moved[56] = True
-        elif piece == 'r' and self.black_rooks_moved[start] == False:
-            if start == 0: self.black_rooks_moved[0] = True
-            elif start == 7: self.black_rooks_moved[7] = True
+        elif piece == 'R' and start in self.white_rooks_moved and not self.white_rooks_moved[start]:
+            if start == 63: self.white_rooks_moved[start] = True
+            elif start == 56: self.white_rooks_moved[start] = True
+        elif piece == 'r' and start in self.black_rooks_moved and not self.black_rooks_moved[start]:
+            if start == 0: self.black_rooks_moved[start] = True
+            elif start == 7: self.black_rooks_moved[start] = True
 
         mask = ~(1 << start)
 
