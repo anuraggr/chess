@@ -88,6 +88,31 @@ class Board:
             return False
 
         return True
+    
+    def can_castle(self, turn: chr, side: str):
+        if turn == 'w':
+            if self.white_king_moved:
+                return False
+            if side == 'kingside':
+                if self.white_rooks_moved[63]:
+                    return False
+                return not any(self.is_occupied(pos) for pos in [61, 62])
+            else:
+                if self.white_rooks_moved[56]:
+                    return False
+                return not any(self.is_occupied(pos) for pos in [57, 58, 59])
+        else:
+            if self.black_king_moved:
+                return False
+            if side == 'kingside':
+                if self.black_rooks_moved[7]:
+                    return False
+                return not any(self.is_occupied(pos) for pos in [5, 6])
+            else:
+                if self.black_rooks_moved[0]:
+                    return False
+                return not any(self.is_occupied(pos) for pos in [1, 2, 3])
+
 
     def _move_piece(self, start: int, end: int, piece: str):
         mask = ~(1 << start)
