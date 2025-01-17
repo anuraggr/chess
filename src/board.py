@@ -340,6 +340,17 @@ class Board:
                 if 0 <= new_position < 64 and abs((new_position % 8) - (position % 8)) <= 1:
                     if not self.is_occupied(new_position) or self.is_capturable(new_position, turn):
                         moves.append(new_position)
+
+            if turn == 'w' and position == 60:
+                if self.can_castle(turn, 'kingside'):
+                    moves.append(62)
+                if self.can_castle(turn, 'queenside'):
+                    moves.append(59)
+            elif turn == 'b' and position == 4:
+                if self.can_castle(turn, 'kingside'):
+                    moves.append(6)
+                if self.can_castle(turn, 'queenside'):
+                    moves.append(2)
             return moves
         return moves
 
