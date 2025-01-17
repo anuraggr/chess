@@ -15,6 +15,11 @@ class Board:
         self.black_queen = int("0000000000000000000000000000000000000000000000000000000000001000", 2)
         self.black_king = int("0000000000000000000000000000000000000000000000000000000000010000", 2)
 
+        self.white_king_moved = False
+        self.black_king_moved = False
+        self.white_rooks_moved = {56: False, 63: False}
+        self.back_rooks_moved = {0: False, 7: False}
+
     def make_move(self, start: int, end: int, turn: chr):
         piece = self.get_piece_at_position(start)
         mask = ~(1 << start)
