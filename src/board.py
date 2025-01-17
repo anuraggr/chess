@@ -18,10 +18,33 @@ class Board:
         self.white_king_moved = False
         self.black_king_moved = False
         self.white_rooks_moved = {56: False, 63: False}
-        self.back_rooks_moved = {0: False, 7: False}
+        self.black_rooks_moved = {0: False, 7: False}
 
     def make_move(self, start: int, end: int, turn: chr):
         piece = self.get_piece_at_position(start)
+
+        if piece == 'K':
+            self.white_king_moved = True
+            if start == 60:
+                if end == 62:
+                    self._move_piece(63, 61, 'R')
+                elif end == 58:
+                    self._move_piece(56, 59, 'R')
+        elif piece == 'k':
+            self.black_king_moved = True
+            if start == 4:
+                if end == 6:
+                    self._move_piece(7, 5, 'r')
+                elif end == 2:
+                    self._move_piece(0, 3, 'r')
+
+        elif piece == 'R' and self.white_rooks_moved[start] == False:
+            if start == 63: self.white_rooks_moved[63] = True
+            elif start == 56: self.white_rooks_moved[56] = True
+        elif piece == 'r' and self.black_rooks_moved[start] == False:
+            if start == 0: self.black_rooks_moved[0] = True
+            elif start == 7: self.black_rooks_moved[7] = True
+
         mask = ~(1 << start)
 
         # Remove the piece that is moving from its pos
@@ -65,6 +88,13 @@ class Board:
             return False
 
         return True
+
+    def _move_piece(self, start: int, end: int, piece: str):
+        mask = ~(1 << start)
+        self._remove_piece(piece, mask)
+        move_mask = (1 << end)
+        self._place_piece(piece, move_mask)
+
 
     def _remove_piece(self, piece, mask):
         if piece == 'P': self.white_pawns &= mask
