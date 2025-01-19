@@ -7,7 +7,7 @@ Game logic has been written from scratch while Pygame has been used for graphica
 ## Usage
 Install prerequisites with:
 ```bash
-pip install requirements.txt
+pip install -r requirements.txt
 ```
 
 Run the game with in ./src directory:
