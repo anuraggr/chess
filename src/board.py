@@ -197,6 +197,65 @@ class Board:
         
         return king_safe
 
+    def is_square_under_attack(self, square: int, by_turn: chr) -> bool:
+        # Issue was king was able to capture protected pieces. I tried solving it with simulate_move() in
+        # possible_moves() but as simulate_move() indirectally called possible_moves() so we were gettig
+        # recursion error. So I created this func instead to check if a square is protected or not. In
+        # hindsight i should have used possible_moves to add protected moves too and removed them when getting
+        # where the piece can move. Maybe later tho.
+
+        
+        if by_turn == 'w':   #pawns
+            if square % 8 != 0 and square + 7 <= 63 and (self.white_pawns & (1 << (square + 7))):
+                return True
+            if square % 8 != 7 and square + 9 <= 63 and (self.white_pawns & (1 << (square + 9))):
+                return True
+        else:
+            if square % 8 != 0 and square - 9 >= 0 and (self.black_pawns & (1 << (square - 9))):
+                return True
+            if square % 8 != 7 and square - 7 >= 0 and (self.black_pawns & (1 << (square - 7))):
+                return True
+
+        knight_moves = [17, 15, -15, -17, 6, -6, 10, -10]
+        knights = self.white_knights if by_turn == 'w' else self.black_knights
+        for move in knight_moves:
+            dest = square + move
+            if 0 <= dest < 64 and abs((dest % 8) - (square % 8)) <= 2:
+                if knights & (1 << dest):
+                    return True
+                
+        rooks = self.white_rooks if by_turn == 'w' else self.black_rooks
+        bishops = self.white_bishops if by_turn == 'w' else self.black_bishops
+        queens = self.white_queen if by_turn == 'w' else self.black_queen
+
+        for direction in [8, -8, 1, -1]:
+            curr = square + direction
+            while 0 <= curr < 64 and abs((curr % 8) - ((curr - direction) % 8)) <= 1:
+                if (rooks & (1 << curr)) or (queens & (1 << curr)):
+                    return True
+                if self.is_occupied(curr):
+                    break
+                curr += direction
+
+        for direction in [7, 9, -7, -9]:
+            curr = square + direction
+            while 0 <= curr < 64 and abs((curr % 8) - ((curr - direction) % 8)) == 1:
+                if (bishops & (1 << curr)) or (queens & (1 << curr)):
+                    return True
+                if self.is_occupied(curr):
+                    break
+                curr += direction
+
+        king = self.white_king if by_turn == 'w' else self.black_king
+        king_moves = [8, -8, 1, -1, 9, 7, -7, -9]
+        for move in king_moves:
+            dest = square + move
+            if 0 <= dest < 64 and abs((dest % 8) - (square % 8)) <= 1:
+                if king & (1 << dest):
+                    return True
+
+        return False
+
     def possible_moves(self, position: int, piece: str, turn: chr=None) -> list:
         moves = []
         if piece == 'p':  # black pawn
@@ -334,13 +393,17 @@ class Board:
                     moves.append(new_position)
             return moves
         elif piece == 'k' or piece == 'K':  # king
+            opponent_turn = 'b' if turn == 'w' else 'w'
             directions = [8, -8, 1, -1, 9, 7, -7, -9]
             for direction in directions:
                 new_position = position + direction
                 if 0 <= new_position < 64 and abs((new_position % 8) - (position % 8)) <= 1:
-                    if not self.is_occupied(new_position) or self.is_capturable(new_position, turn):
-                        moves.append(new_position)
+                    # check if move/capture isnt protected by oppo piece
+                    if not self.is_square_under_attack(new_position, opponent_turn):
+                        if not self.is_occupied(new_position) or self.is_capturable(new_position, turn):
+                            moves.append(new_position)
 
+            # castling
             if turn == 'w' and position == 60:
                 if self.can_castle(turn, 'kingside'):
                     moves.append(62)
