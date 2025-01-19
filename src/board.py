@@ -468,7 +468,7 @@ class Board:
     def possible_move_dictionary(self, turn: chr, check: bool = False) -> dict:
         if check == False:
             all_moves = {}
-            for position in range(0,63):
+            for position in range(0,64):
                 piece = self.get_piece_at_position(position)
                 if piece != '.':
                     if (turn == 'w' and piece.isupper()) or (turn == 'b' and piece.islower()):
@@ -478,7 +478,7 @@ class Board:
             return all_moves
         else:
             all_moves = {}
-            for position in range(0, 63):
+            for position in range(0, 64):
                 piece = self.get_piece_at_position(position)
                 if piece != '.' and ((turn == 'w' and piece.isupper()) or (turn == 'b' and piece.islower())):
                     moves = self.possible_moves(position, piece, turn)
