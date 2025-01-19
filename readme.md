@@ -10,7 +10,7 @@ Install prerequisites with:
 pip install requirements.txt
 ```
 
-Run with game with:
+Run with game with in ./src directory:
 ```
 python main.py
 ```
