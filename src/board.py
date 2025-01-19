@@ -20,8 +20,12 @@ class Board:
         self.white_rooks_moved = {56: False, 63: False}
         self.black_rooks_moved = {0: False, 7: False}
 
-    def make_move(self, start: int, end: int, turn: chr):
+    def make_move(self, start: int, end: int, turn: chr, promotion_piece: str = None):
         piece = self.get_piece_at_position(start)
+        
+        is_promotion = (piece == 'P' and 0 <= end <= 7) or (piece == 'p' and 56 <= end <= 63)
+        if is_promotion and not promotion_piece:
+            return "promotion"
 
         if piece == 'K':
             self.white_king_moved = True
@@ -47,16 +51,32 @@ class Board:
 
         mask = ~(1 << start)
 
-        # Remove the piece that is moving from its pos
+        
         self._remove_piece(piece, mask)
 
         # Handle captures if any
         if self.is_capturable(end, turn):
             self._handle_capture(end, turn)
 
+        # pawn promotion
+        if is_promotion and promotion_piece:
+            move_mask = (1 << end)
+            if turn == 'w':
+                if promotion_piece == 'Q': self.white_queen |= move_mask
+                elif promotion_piece == 'R': self.white_rooks |= move_mask
+                elif promotion_piece == 'B': self.white_bishops |= move_mask
+                elif promotion_piece == 'N': self.white_knights |= move_mask
+            else:
+                if promotion_piece == 'q': self.black_queen |= move_mask
+                elif promotion_piece == 'r': self.black_rooks |= move_mask
+                elif promotion_piece == 'b': self.black_bishops |= move_mask
+                elif promotion_piece == 'n': self.black_knights |= move_mask
+            return None
+
         # Place piece at end position
         move_mask = (1 << end)
         self._place_piece(piece, move_mask)
+        return None
 
     def is_valid_move(self, start: int, end: int, turn: chr, check: bool) -> bool:
         if start < 0 or end >= 64:

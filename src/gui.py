@@ -19,6 +19,8 @@ class GUI:
         for piece in pieces:
             img = pygame.image.load(os.path.join("assets", f"{piece}.png")).convert_alpha()
             self.pieces[piece] = pygame.transform.smoothscale(img, (self.piece_size, self.piece_size))
+        
+        self.promotion_rect_size = 50
     
     def draw_board(self, board):
         for row in range(8):
@@ -67,3 +69,44 @@ class GUI:
             pygame.draw.circle(s, (100,110,64,255), (self.square_size//2, self.square_size//2), self.square_size//6)
             self.screen.blit(s, (col * self.square_size, row * self.square_size))
         pygame.display.flip()
+
+    def draw_promotion_options(self, options):
+        overlay = pygame.Surface((self.board_size, self.board_size))
+        overlay.set_alpha(128)
+        overlay.fill((0, 0, 0))
+        self.screen.blit(overlay, (0, 0))
+
+        start_x = (self.board_size - len(options) * self.promotion_rect_size) // 2
+        start_y = (self.board_size - self.promotion_rect_size) // 2
+
+        for i, piece in enumerate(options):
+            rect = pygame.Rect(
+                start_x + i * self.promotion_rect_size,
+                start_y,
+                self.promotion_rect_size,
+                self.promotion_rect_size
+            )
+            pygame.draw.rect(self.screen, (255, 255, 255), rect)
+            pygame.draw.rect(self.screen, (0, 0, 0), rect, 1)
+            
+            piece_img = pygame.transform.scale(
+                self.pieces[piece],
+                (self.promotion_rect_size - 10, self.promotion_rect_size - 10)
+            )
+            self.screen.blit(
+                piece_img,
+                (rect.x + 5, rect.y + 5)
+            )
+        
+        pygame.display.flip()
+
+    def get_promotion_choice(self, pos, options):
+        x, y = pos
+        start_x = (self.board_size - len(options) * self.promotion_rect_size) // 2
+        start_y = (self.board_size - self.promotion_rect_size) // 2
+        
+        if start_y <= y <= start_y + self.promotion_rect_size:
+            option_index = (x - start_x) // self.promotion_rect_size
+            if 0 <= option_index < len(options):
+                return options[option_index]
+        return None
