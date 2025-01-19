@@ -15,6 +15,9 @@ Run with game with in ./src directory:
 python main.py
 ```
 
+## Screenshots
+![img](https://imgur.com/ApNuc1f)
+![img2](https://imgur.com/knaXtod)
 
 ## License
 
