@@ -10,14 +10,14 @@ Install prerequisites with:
 pip install requirements.txt
 ```
 
-Run with game with in ./src directory:
+Run the game with in ./src directory:
 ```
 python main.py
 ```
 
 ## Screenshots
-![img](https://imgur.com/ApNuc1f)
-![img2](https://imgur.com/knaXtod)
+![img](https://i.imgur.com/ApNuc1f.png)
+![img2](https://i.imgur.com/knaXtod.png)
 
 ## License
 
