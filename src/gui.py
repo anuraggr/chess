@@ -4,20 +4,22 @@ import os
 class GUI:
     def __init__(self):
         pygame.init()
-        self.square_size = 80  # Reduced from 80 to 60
+        self.square_size = 80 
         self.board_size = self.square_size * 8
         self.screen = pygame.display.set_mode((self.board_size, self.board_size))
         pygame.display.set_caption("Chess")
 
-        # Configure piece sizes with padding
-        self.piece_size = int(self.square_size * 0.9)  # Pieces slightly smaller than squares
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        assets_dir = os.path.join(os.path.dirname(current_dir), "assets")
+
+        self.piece_size = int(self.square_size * 0.9)  
         self.piece_padding = (self.square_size - self.piece_size) // 2
 
-        # Load and scale pieces with better quality
+        
         self.pieces = {}
         pieces = ['P', 'N', 'B', 'R', 'Q', 'K', 'p', 'n', 'b', 'r', 'q', 'k']
         for piece in pieces:
-            img = pygame.image.load(os.path.join("assets", f"{piece}.png")).convert_alpha()
+            img = pygame.image.load(os.path.join(assets_dir, f"{piece}.png")).convert_alpha()
             self.pieces[piece] = pygame.transform.smoothscale(img, (self.piece_size, self.piece_size))
         
         self.promotion_rect_size = 50
@@ -33,7 +35,6 @@ class GUI:
                 )
                 piece = board.get_piece_at_position(row * 8 + col)
                 if piece != '.':
-                    # Center piece in square
                     piece_x = col * self.square_size + self.piece_padding
                     piece_y = row * self.square_size + self.piece_padding
                     self.screen.blit(self.pieces[piece], (piece_x, piece_y))
