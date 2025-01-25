@@ -295,8 +295,7 @@ class Board:
             if position % 8 != 7 and (position + 9) <= 63:  # Right capture
                 if self.is_occupied(position + 9) and self.is_capturable(position + 9, turn):
                     moves.append(position + 9)
-            return moves
-                    
+
         elif piece == 'P':  # white pawn
             if position >= 48 and position <= 55:  # Starting position
                 if not self.is_occupied(position - 8):
@@ -435,7 +434,10 @@ class Board:
                 if self.can_castle(turn, 'queenside'):
                     moves.append(2)
             return moves
-        return moves
+
+        # remove moves that expose king to check
+        valid_moves = [move for move in moves if self.simulate_move(position, move, turn)]
+        return valid_moves
 
     def get_piece_at_position(self, position: int) -> str:
         if (self.white_pawns & (1 << position)) != 0:
